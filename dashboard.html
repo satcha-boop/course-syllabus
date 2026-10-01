@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="api-shim.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --ink: #1F2733;
+      --muted: #667085;
+      --paper: #EEF2F7;
+      --card: #FFFFFF;
+      --line: #E3E7EE;
+      --navy: #1D3557;
+      --navy-dark: #122238;
+      --navy-light: #335486;
+      --gold: #C8922B;
+      --gold-soft: #FBF0DC;
+      --teal: #1E8F6F;
+      --teal-soft: #E3F3EC;
+      --clay: #C8483A;
+      --clay-soft: #FBE7E4;
+      --amber: #B8780B;
+      --amber-soft: #FDF0DC;
+      --slate: #8A94A6;
+      --slate-soft: #ECEEF2;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow: 0 14px 34px -18px rgba(29, 53, 87, 0.3);
+    }
+
+    * { box-sizing: border-box; }
+
+    body { font-family: 'Sarabun', sans-serif; background: var(--paper); color: var(--ink); padding: 24px; }
+
+    .card { border: none; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+
+    /* หัวการ์ด */
+    .dash-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+    .dash-brand { display: flex; align-items: center; gap: 14px; }
+    .dash-icon {
+      flex: none; width: 44px; height: 44px; border-radius: 13px;
+      background: var(--navy); color: var(--gold);
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .dash-title { font-size: 1.2rem; font-weight: 700; color: var(--navy-dark); margin: 0; }
+    .dash-subtitle { color: var(--muted); font-size: 0.88rem; margin: 0; }
+
+    .lang-switch { display: inline-flex; background: var(--paper); border-radius: 999px; padding: 3px; gap: 2px; }
+    .lang-btn { border: none; background: transparent; color: var(--muted); font-weight: 600; font-size: 0.8rem; padding: 5px 14px; border-radius: 999px; cursor: pointer; }
+    .lang-btn.active { background: var(--navy); color: #fff; }
+
+    #lastUpdate {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--paper); color: var(--muted);
+      border-radius: 999px; padding: 5px 14px; font-size: 0.8rem;
+    }
+
+    .action-btn {
+      border-radius: 999px; font-weight: 600; font-size: 0.85rem;
+      padding: 7px 16px; border: 1px solid var(--line); background: #fff;
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .action-btn.pdf { color: var(--clay); border-color: var(--clay-soft); }
+    .action-btn.pdf:hover { background: var(--clay-soft); }
+    .action-btn.image { color: var(--teal); border-color: var(--teal-soft); }
+    .action-btn.image:hover { background: var(--teal-soft); }
+    .action-btn.refresh { color: #fff; background: var(--navy); border-color: var(--navy); }
+    .action-btn.refresh:hover { background: var(--navy-dark); }
+
+    /* ค้นหาและตัวกรอง */
+    .search-wrap { position: relative; }
+    .search-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .search-wrap input { padding-left: 38px; }
+    .form-control, .form-select { border-radius: var(--radius-md); border: 1px solid var(--line); }
+    .form-control:focus, .form-select:focus { border-color: var(--navy-light); box-shadow: 0 0 0 0.2rem rgba(29, 53, 87, 0.14); }
+
+    /* 1. กำหนดกรอบพื้นที่เลื่อน */
+    .table-responsive { max-height: 70vh; overflow-y: auto; border-radius: var(--radius-md); border: 1px solid var(--line); }
+
+    /* 2. ดันแถบ Scrollbar ลงมาใต้หัวตาราง */
+    .table-responsive::-webkit-scrollbar { width: 10px; }
+    .table-responsive::-webkit-scrollbar-track { background: var(--paper); margin-top: 83px; }
+    .table-responsive::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 5px; }
+    .table-responsive::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+    /* --- 3. จัดการหัวตารางให้อุดรอยรั่ว 100% --- */
+    .table thead th {
+      background-color: var(--navy) !important;
+      color: #fff;
+      font-weight: 600;
+      vertical-align: middle !important;
+      position: sticky;
+      z-index: 10;
+      border: none !important;
+      outline: 1px solid var(--navy);
+      white-space: nowrap;
+    }
+
+    /* 4. หัวตารางชั้นบนสุด */
+    .table thead tr:first-child th {
+      top: -1px;
+      z-index: 11;
+      box-shadow: inset 0 1px 0 var(--navy-dark), inset 0 -1px 0 var(--navy-dark);
+    }
+
+    /* 5. หัวตารางชั้นล่าง (Word, PDF) */
+    .table thead tr:last-child th {
+      top: 40px;
+      background-color: var(--navy-light) !important;
+      box-shadow: inset 0 -2px 0 var(--navy-dark);
+    }
+
+    .table tbody tr:hover { background-color: var(--paper); }
+    .table td { vertical-align: middle; }
+
+    /* 6. แบดจ์ */
+    .badge { font-size: 0.8em; padding: 0.42em 0.7em; font-weight: 600; border-radius: 999px; }
+    .badge-verify { min-width: 92px; padding: 0.5em 0.9em; }
+    .badge.bg-success { background-color: var(--teal) !important; }
+    .badge.bg-danger { background-color: var(--clay) !important; }
+    .badge.bg-secondary { background-color: var(--slate) !important; }
+    .badge.bg-warning { background-color: var(--amber) !important; color: #fff !important; }
+
+    /* ========================================= */
+    /* 📌 วางโค้ดบังคับเส้นตารางตรงนี้ครับ */
+    /* ========================================= */
+    #exportArea table { border-collapse: collapse !important; }
+    #exportArea .table-bordered th,
+    #exportArea .table-bordered td { border: 1px solid var(--line) !important; }
+    #exportArea thead th { border: 1px solid var(--navy-dark) !important; outline: none !important; }
+    /* ========================================= */
+
+    button:focus-visible, .lang-btn:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--gold); outline-offset: 2px;
+    }
+
+    @media (max-width: 576px) {
+      .dash-header { flex-direction: column; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="card p-4" id="exportArea"> 
+    <div class="dash-header">
+      <div class="dash-brand">
+        <div class="dash-icon"><i class="fa-solid fa-chart-column"></i></div>
+        <div>
+          <h4 class="dash-title" data-i18n="title"></h4>
+          <p class="dash-subtitle mb-0" data-i18n="subtitle"></p>
+        </div>
+      </div>
+      <div class="text-end">
+        <span id="lastUpdate"></span>
+
+        <div class="d-flex gap-2 justify-content-end mt-2 flex-wrap">
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" id="btnTh" onclick="setLang('th')">TH</button>
+            <button type="button" class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
+          </div>
+          <button class="action-btn pdf" onclick="exportPDF()">
+            <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btnPdf"></span>
+          </button>
+          <button class="action-btn image" onclick="exportImage()">
+            <i class="fa-solid fa-image"></i> <span data-i18n="btnImage"></span>
+          </button>
+          <button class="action-btn refresh" onclick="loadData()">
+            <i class="fa-solid fa-arrow-rotate-right"></i> <span data-i18n="btnRefresh"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-3 g-2">
+      <div class="col-md-4">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="form-control" data-i18n-ph="phSearch" onkeyup="renderTable()">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <!-- ค่า value เป็นภาษาไทยเสมอ (ต้องตรงกับข้อมูลในชีต) / values stay in Thai to match the sheet -->
+        <select id="deptFilter" class="form-select" onchange="renderTable()">
+          <option value="" data-i18n="allDepts"></option>
+          <option value="ภาษาไทย">ภาษาไทย</option>
+          <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+          <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+          <option value="สังคมศึกษา">สังคมศึกษา</option>
+          <option value="สุขศึกษาและพลศึกษา">สุขศึกษาและพลศึกษา</option>
+          <option value="ศิลปะ">ศิลปะ</option>
+          <option value="การงานอาชีพ">การงานอาชีพ</option>
+          <option value="ภาษาต่างประเทศ">ภาษาต่างประเทศ</option>
+          <option value="เทคโนโลยี">เทคโนโลยี</option>
+          <option value="จีน – ญี่ปุ่น">จีน – ญี่ปุ่น</option>
+          <option value="IEP">IEP</option>
+          <option value="EP">EP</option>
+          <option value="STEM">STEM</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle mb-0">
+        <thead class="text-center">
+          <tr>
+            <th rowspan="2" data-i18n="thCode"></th>
+            <th rowspan="2" data-i18n="thName"></th>
+            <th rowspan="2" data-i18n="thDept"></th>
+            <th colspan="2" data-i18n="thSyllabus"></th>
+            <th colspan="2" data-i18n="thSchedule"></th>
+            <th rowspan="2" data-i18n="thVerify"></th>
+          </tr>
+          <tr>
+            <th>Word</th>
+            <th>PDF</th>
+            <th>Word</th>
+            <th>PDF</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==================== 2 ภาษา / Two languages (TH / EN A2) ====================
+  const I18N = {
+    th: {
+      title: 'ติดตามสถานะการส่ง Course Syllabus และกำหนดการสอน',
+      subtitle: 'ตรวจสอบความครบถ้วนของไฟล์ (Word / PDF) จากระบบ',
+      lastUpdated: 'อัปเดตล่าสุด:',
+      loadingShort: 'กำลังโหลด...',
+      failed: 'ไม่สำเร็จ',
+      btnPdf: 'โหลด PDF',
+      btnImage: 'โหลดรูปภาพ',
+      btnRefresh: 'อัปเดตข้อมูล',
+      phSearch: 'ค้นหา รหัสวิชา / ชื่อวิชา...',
+      allDepts: 'ทุกกลุ่มสาระฯ',
+      thCode: 'รหัสวิชา',
+      thName: 'ชื่อวิชา',
+      thDept: 'กลุ่มสาระฯ',
+      thSyllabus: 'Course Syllabus',
+      thSchedule: 'กำหนดการสอน',
+      thVerify: 'ผลการตรวจ',
+      loadingData: 'กำลังโหลดข้อมูล...',
+      errorPrefix: 'เกิดข้อผิดพลาด:',
+      noData: 'ไม่พบข้อมูลที่ค้นหา',
+      sent: 'ส่งแล้ว',
+      missing: 'ขาดส่ง',
+      vWaiting: 'รอตรวจ',
+      vPassed: 'ผ่าน',
+      vFix: 'ปรับแก้ไข',
+      vNotPassed: 'ไม่ผ่าน',
+      creatingPdf: 'กำลังสร้าง PDF...',
+      creatingImage: 'กำลังสร้างรูปภาพ...',
+      filePrefix: 'สรุปการส่งงาน',
+      allDeptsFile: 'ทุกกลุ่มสาระฯ'
+    },
+    en: {
+      title: 'Check Course Syllabus and Course Outline Submissions',
+      subtitle: 'Check if all files (Word / PDF) are sent.',
+      lastUpdated: 'Last updated:',
+      loadingShort: 'Loading...',
+      failed: 'Failed',
+      btnPdf: 'Download PDF',
+      btnImage: 'Download image',
+      btnRefresh: 'Refresh data',
+      phSearch: 'Search subject code / name...',
+      allDepts: 'All learning areas',
+      thCode: 'Subject code',
+      thName: 'Subject name',
+      thDept: 'Learning area',
+      thSyllabus: 'Course Syllabus',
+      thSchedule: 'Course Outline',
+      thVerify: 'Review result',
+      loadingData: 'Loading data...',
+      errorPrefix: 'Error:',
+      noData: 'No data found.',
+      sent: 'Sent',
+      missing: 'Not Submitted',
+      vWaiting: 'Waiting for review',
+      vPassed: 'Passed',
+      vFix: 'Please fix',
+      vNotPassed: 'Not passed',
+      creatingPdf: 'Creating PDF...',
+      creatingImage: 'Creating image...',
+      filePrefix: 'Submission-summary',
+      allDeptsFile: 'All-learning-areas'
+    }
+  };
+
+  let LANG = 'th';
+  try { LANG = localStorage.getItem('lang') || 'th'; } catch (e) {}
+  if (!I18N[LANG]) LANG = 'th';
+
+  function t(key) {
+    if (I18N[LANG] && I18N[LANG][key] !== undefined) return I18N[LANG][key];
+    return I18N.th[key] !== undefined ? I18N.th[key] : key;
+  }
+
+  // ---------- สถานะหน้าจอ (เก็บไว้เพื่อวาดใหม่เมื่อสลับภาษา) ----------
+  let allData = [];
+  let state = 'loading';   // 'loading' | 'ok' | 'error'
+  let lastUpdateVal = '';
+  let errorObj = null;
+
+  function applyLang() {
+    document.documentElement.lang = LANG;
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-ph')); });
+    // ตัวเลือกในแถบกรอง ใช้ชื่อกลุ่มสาระฯ ภาษาไทยเสมอ (ตรงกับข้อมูลในชีต)
+    document.getElementById('btnTh').classList.toggle('active', LANG === 'th');
+    document.getElementById('btnEn').classList.toggle('active', LANG === 'en');
+    renderAll();
+  }
+
+  function setLang(lang) {
+    LANG = lang;
+    try { localStorage.setItem('lang', lang); } catch (e) {}
+    applyLang();
+  }
+
+  function renderLastUpdate() {
+    let val = state === 'loading' ? t('loadingShort') : (state === 'error' ? t('failed') : lastUpdateVal);
+    document.getElementById('lastUpdate').innerHTML = '<i class="fa-regular fa-clock"></i> ' + t('lastUpdated') + ' ' + val;
+  }
+
+  function renderBody() {
+    const body = document.getElementById('tableBody');
+    if (state === 'loading') {
+      body.innerHTML = `<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><br>${t('loadingData')}</td></tr>`;
+    } else if (state === 'error') {
+      let msg = (LANG === 'en' && errorObj && errorObj.errorEn) ? errorObj.errorEn : (errorObj ? errorObj.error : '');
+      body.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">${t('errorPrefix')} ${msg}</td></tr>`;
+    } else {
+      renderTable();
+    }
+  }
+
+  function renderAll() {
+    renderLastUpdate();
+    renderBody();
+  }
+
+  window.onload = function() { applyLang(); loadData(); };
+
+  function loadData() {
+    state = 'loading';
+    renderAll();
+    google.script.run.withSuccessHandler(function(response) {
+      if(response.error) {
+        state = 'error';
+        errorObj = response;
+        renderAll();
+        return;
+      }
+      state = 'ok';
+      allData = response.data;
+      lastUpdateVal = response.lastUpdate;
+      renderAll();
+    }).getDashboardData();
+  }
+
+  function renderTable() {
+    if (state !== 'ok') return;
+    let searchTxt = document.getElementById('searchInput').value.toLowerCase();
+    let deptFilter = document.getElementById('deptFilter').value;
+    let html = '';
+    let filtered = allData.filter(item => {
+      let matchSearch = item.code.toLowerCase().includes(searchTxt) || item.name.toLowerCase().includes(searchTxt);
+      let matchDept = (deptFilter === '') || (item.dept === deptFilter);
+      return matchSearch && matchDept;
+    });
+
+    if(filtered.length === 0) {
+      html = `<tr><td colspan="8" class="text-center py-4">${t('noData')}</td></tr>`;
+    } else {
+      const okBadge = `<span class="badge bg-success"><i class="fas fa-check"></i> ${t('sent')}</span>`;
+      const noBadge = `<span class="badge bg-danger"><i class="fas fa-times"></i> ${t('missing')}</span>`;
+      filtered.forEach(item => {
+        let sylWord = item.syllabusWord ? okBadge : noBadge;
+        let sylPdf = item.syllabusPdf ? okBadge : noBadge;
+        let schWord = item.scheduleWord ? okBadge : noBadge;
+        let schPdf = item.schedulePdf ? okBadge : noBadge;
+
+        let verifyClass = "";
+        let verifyText = String(item.verify == null ? '' : item.verify).trim();
+        if (verifyText === "รอตรวจ" || verifyText === "") {
+          verifyClass = "bg-secondary";
+          verifyText = t('vWaiting');
+        } else if (verifyText === "ผ่าน") {
+          verifyClass = "bg-success";
+          verifyText = t('vPassed');
+        } else {
+          verifyClass = "bg-warning";
+          // ข้อความอื่น ๆ (เช่น "ปรับแก้ไข") แปลเมื่ออยู่โหมดอังกฤษ ถ้าไม่รู้จักจะแสดงตามชีต
+          if (LANG === 'en') {
+            if (verifyText === 'ไม่ผ่าน') verifyText = t('vNotPassed');
+            else if (verifyText.includes('แก้ไข')) verifyText = t('vFix');
+          }
+        }
+
+        // รหัสวิชา ชื่อวิชา และกลุ่มสาระฯ แสดงตามข้อมูลในชีตเสมอ ไม่แปลภาษา
+        html += `<tr class="text-center"><td>${item.code}</td><td class="text-start">${item.name}</td><td>${item.dept}</td><td>${sylWord}</td><td>${sylPdf}</td><td>${schWord}</td><td>${schPdf}</td><td><span class="badge rounded-pill badge-verify ${verifyClass}">${verifyText}</span></td></tr>`;
+      });
+    }
+    document.getElementById('tableBody').innerHTML = html;
+  }
+  
+  // --- ฟังก์ชันช่วยเหลือ: ปลดล็อก Scrollbar ก่อนแคปภาพ เพื่อให้ตารางมาครบทุกบรรทัด ---
+  function toggleScrollForExport(isExporting) {
+    const tableDiv = document.querySelector('.table-responsive');
+    if (isExporting) {
+      tableDiv.style.maxHeight = 'none';
+      tableDiv.style.overflowY = 'visible';
+    } else {
+      tableDiv.style.maxHeight = '70vh';
+      tableDiv.style.overflowY = 'auto';
+    }
+  }
+
+  // --- สร้างชื่อไฟล์อัตโนมัติตามกลุ่มสาระฯ ที่เลือก ---
+  function getExportFilename(extension) {
+    let dept = document.getElementById('deptFilter').value;
+    let deptName = dept === "" ? t('allDeptsFile') : dept;
+    let dateStr = new Date().toLocaleDateString(LANG === 'en' ? 'en-GB' : 'th-TH').replace(/\//g, '-');
+    return `${t('filePrefix')}_${deptName}_${dateStr}.${extension}`;
+  }
+
+  // --- ฟังก์ชันโหลด PDF ---
+  function exportPDF() {
+    toggleScrollForExport(true); // ปลดล็อกตารางให้กางเต็ม
+    const element = document.getElementById('exportArea');
+    const filename = getExportFilename('pdf');
+    
+    // ตั้งค่า PDF (กระดาษ A4 แนวนอน)
+    const opt = {
+      margin:       0.5,
+      filename:     filename,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+
+    // แสดงโหลดดิ้งที่ปุ่มเพื่อกันคนกดรัว
+    Swal.fire({ title: t('creatingPdf'), allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      toggleScrollForExport(false); // หดตารางกลับเหมือนเดิม
+      Swal.close();
+    });
+  }
+
+  // --- ฟังก์ชันโหลดรูปภาพ ---
+  function exportImage() {
+    toggleScrollForExport(true);
+    const element = document.getElementById('exportArea');
+    const filename = getExportFilename('png');
+
+    Swal.fire({ title: t('creatingImage'), allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+
+    html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+      let link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toggleScrollForExport(false);
+      Swal.close();
+    });
+  }
+
+</script>
+</body>
+</html>
