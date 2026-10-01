@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="api-shim.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --ink: #1F2733;
+      --muted: #667085;
+      --paper: #EEF2F7;
+      --card: #FFFFFF;
+      --line: #E3E7EE;
+      --navy: #1D3557;
+      --navy-dark: #122238;
+      --navy-light: #335486;
+      --gold: #C8922B;
+      --gold-soft: #FBF0DC;
+      --teal: #1E8F6F;
+      --clay: #C8483A;
+      --clay-soft: #FBE7E4;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 14px 34px -16px rgba(29, 53, 87, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      padding: 40px 15px;
+    }
+
+    .form-container {
+      position: relative;
+      background: var(--card);
+      padding: 36px 34px 34px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      max-width: 800px;
+      margin: auto;
+      overflow: hidden;
+    }
+    .form-container::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--navy) 0%, var(--navy-light) 55%, var(--gold) 100%);
+    }
+
+    /* สลับภาษา */
+    .lang-switch {
+      display: inline-flex;
+      background: var(--paper);
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease;
+    }
+    .lang-btn.active { background: var(--navy); color: #fff; }
+
+    /* หัวเรื่อง */
+    .brand-row { display: flex; align-items: flex-start; gap: 16px; margin-top: 6px; margin-bottom: 22px; }
+    .brand-icon {
+      flex: none; width: 46px; height: 46px; border-radius: 13px;
+      background: var(--navy); color: var(--gold);
+      display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+    }
+    .page-title { font-size: 1.5rem; font-weight: 700; color: var(--navy-dark); margin: 0 0 4px; line-height: 1.3; }
+    .page-subtitle { color: var(--muted); font-size: 0.95rem; margin: 0; }
+
+    /* ริบบิ้นกำหนดส่ง */
+    .deadline-ribbon {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--clay-soft); color: var(--clay);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      font-weight: 600; font-size: 0.98rem;
+      margin-bottom: 24px;
+    }
+    .deadline-ribbon i { font-size: 1rem; }
+
+    /* กล่องคำแนะนำ */
+    .hint-card {
+      display: flex; gap: 14px;
+      background: var(--paper);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      margin-bottom: 26px;
+      font-size: 0.93rem;
+      line-height: 1.6;
+    }
+    .hint-card .hint-icon {
+      flex: none; width: 34px; height: 34px; border-radius: 10px;
+      background: var(--gold-soft); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hint-card strong { display: block; margin-bottom: 4px; color: var(--navy-dark); }
+    .hint-card code { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+
+    /* หัวข้อย่อย */
+    .section-head { display: flex; align-items: center; gap: 10px; margin-top: 28px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .section-head i { color: var(--gold); font-size: 1rem; }
+    .section-title { font-weight: 600; color: var(--navy-dark); margin: 0; font-size: 1.02rem; }
+
+    .form-label { font-weight: 500; color: var(--ink); font-size: 0.92rem; }
+    .form-control, .form-select {
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      padding: 9px 13px;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--navy-light);
+      box-shadow: 0 0 0 0.2rem rgba(29, 53, 87, 0.14);
+    }
+
+    /* แถบเปิด/ปิด สอนหลายวิชา */
+    .multi-box {
+      margin-top: 30px;
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 18px;
+      border-radius: var(--radius-md);
+      background: var(--paper);
+      border-left: 4px solid var(--navy);
+    }
+    .multi-box .multi-icon {
+      flex: none; width: 34px; height: 34px; border-radius: 10px;
+      background: #fff; color: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .multi-box .form-check-input:checked { background-color: var(--navy); border-color: var(--navy); }
+    .multi-box .form-text { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+
+    /* กล่องวิชา */
+    #blocks { counter-reset: subject; }
+    .block-head { display: none; }
+    .multi-on .subject-block {
+      counter-increment: subject;
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 8px 20px 20px;
+      margin-top: 28px;
+      background: #fcfdff;
+    }
+    .multi-on .subject-block::before {
+      counter-increment: none;
+      content: counter(subject);
+      position: absolute;
+      top: -16px; left: 22px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--navy); color: #fff;
+      font-weight: 700; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow);
+    }
+    .multi-on .block-head { display: flex; justify-content: flex-end; align-items: center; padding-top: 10px; }
+    .subject-block:first-child .block-head { display: none !important; }
+    .remove-btn { border-radius: 999px; font-size: 0.82rem; }
+
+    .text-primary { color: var(--navy) !important; }
+    .text-danger { color: var(--clay) !important; }
+    .badge.bg-success { background-color: var(--teal) !important; }
+    .badge.bg-secondary { background-color: #8A94A6 !important; }
+
+    .btn-add-subject {
+      border-radius: 999px;
+      border: 1px solid var(--navy);
+      color: var(--navy);
+      background: #fff;
+      font-weight: 600;
+      padding: 9px 22px;
+    }
+    .btn-add-subject:hover { background: var(--navy); color: #fff; }
+    #maxHint { color: var(--muted); font-size: 0.82rem; margin-top: 6px; }
+
+    #submitBtn {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      box-shadow: 0 10px 24px -10px rgba(29, 53, 87, 0.55);
+    }
+    #submitBtn:hover { filter: brightness(1.06); }
+    #submitBtn:disabled { opacity: 0.75; }
+
+    .swal2-popup { font-family: 'Sarabun', sans-serif; border-radius: var(--radius-lg) !important; }
+
+    .busy #multiSwitch, .busy #addBtn, .busy .remove-btn { pointer-events: none; opacity: .5; }
+
+    button:focus-visible, .lang-btn:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--gold); outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .lang-btn, .btn-add-subject, #submitBtn { transition: background .15s ease, color .15s ease, filter .15s ease; }
+    }
+
+    @media (max-width: 576px) {
+      .form-container { padding: 26px 18px; }
+      .brand-icon { width: 40px; height: 40px; }
+      .page-title { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="form-container" id="formBox">
+
+    <div class="d-flex justify-content-end mb-2">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" id="btnTh" onclick="setLang('th')">TH</button>
+        <button type="button" class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+
+    <div class="brand-row">
+      <div class="brand-icon"><i class="fa-solid fa-folder-open"></i></div>
+      <div>
+        <h1 class="page-title" data-i18n="title"></h1>
+        <p class="page-subtitle" data-i18n="subtitle"></p>
+      </div>
+    </div>
+
+    <div class="deadline-ribbon">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span data-i18n="deadlineLabel"></span>
+      <span id="deadlineVal" data-th="9 ตุลาคม 2569 เวลา 08:00 น." data-en="9 October 2026, 08:00"></span>
+    </div>
+
+    <div class="hint-card">
+      <div class="hint-icon"><i class="fa-solid fa-circle-info"></i></div>
+      <div>
+        <strong data-i18n="hintTitle"></strong>
+        <span data-i18n-html="hintBody"></span>
+      </div>
+    </div>
+
+    <form id="mainForm" onsubmit="submitForm(event)">
+      <div class="section-head">
+        <i class="fa-solid fa-user"></i>
+        <h5 class="section-title" data-i18n="secTeacher"></h5>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" data-i18n="lblTeacherId"></label>
+          <input type="text" id="teacherId" class="form-control" data-i18n-ph="phTeacherId" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" data-i18n="lblFirstName"></label>
+          <input type="text" id="firstName" class="form-control" data-i18n-ph="phFirstName" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" data-i18n="lblLastName"></label>
+          <input type="text" id="lastName" class="form-control" data-i18n-ph="phLastName" required>
+        </div>
+        <div class="col-md-12">
+          <label class="form-label" data-i18n="lblDepartment"></label>
+          <!-- ค่า value เป็นภาษาไทยเสมอ (ใช้ตั้งชื่อโฟลเดอร์และบันทึกลงชีต) / values stay in Thai -->
+          <select id="department" class="form-select" required>
+            <option value="" data-i18n="chooseDept"></option>
+            <option value="ภาษาไทย">ภาษาไทย</option>
+            <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+            <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+            <option value="สังคมศึกษา">สังคมศึกษา</option>
+            <option value="สุขศึกษาและพลศึกษา">สุขศึกษาและพลศึกษา</option>
+            <option value="ศิลปะ">ศิลปะ</option>
+            <option value="การงานอาชีพ">การงานอาชีพ</option>
+            <option value="ภาษาต่างประเทศ">ภาษาต่างประเทศ</option>
+            <option value="เทคโนโลยี">เทคโนโลยี</option>
+            <option value="จีน – ญี่ปุ่น">จีน – ญี่ปุ่น</option>
+            <option value="IEP">IEP</option>
+            <option value="EP">EP</option>
+            <option value="STEM">STEM</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- สวิตช์ เปิด / ปิด : สอนหลายวิชา -->
+      <div class="multi-box">
+        <div class="multi-icon"><i class="fa-solid fa-layer-group"></i></div>
+        <div class="flex-grow-1">
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" role="switch" id="multiSwitch" onchange="onMultiToggle(this.checked)">
+            <label class="form-check-label fw-semibold" for="multiSwitch" data-i18n="multiLabel"></label>
+            <span id="multiState" class="badge bg-secondary ms-2"></span>
+          </div>
+          <div class="form-text" data-i18n="multiHelp"></div>
+        </div>
+      </div>
+
+      <!-- กล่องวิชา (สร้างด้วย JavaScript) -->
+      <div id="blocks"></div>
+
+      <div id="addWrap" class="text-center mt-4" style="display:none;">
+        <button type="button" class="btn-add-subject" id="addBtn" onclick="addBlock()"></button>
+        <div id="maxHint"></div>
+      </div>
+
+      <div class="text-center mt-5">
+        <button type="submit" id="submitBtn" class="btn btn-lg text-white w-50"></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ==================== 2 ภาษา / Two languages (TH / EN A2) ====================
+  const I18N = {
+    th: {
+      title: 'ระบบการส่ง Course Syllabus และกำหนดการสอน',
+      deadlineLabel: 'กำหนดส่งงาน:',
+      subtitle: 'กรุณากรอกข้อมูลและแนบไฟล์ให้ครบถ้วน',
+      hintTitle: 'กฎการตั้งชื่อไฟล์ก่อนอัปโหลด:',
+      hintBody: 'ให้ตั้งชื่อไฟล์ตามรูปแบบนี้เท่านั้น: <code>รหัสวิชา_ชื่อวิชา_เลขประจำตัวครู_ประเภทเอกสาร</code><br>' +
+                'ตัวอย่างที่ถูกต้อง (Course Syllabus): <code class="text-success">ค32101_คณิตศาสตร์ 5_10603_Course Syllabus</code><br>' +
+                'ตัวอย่างที่ถูกต้อง (กำหนดการสอน): <code class="text-success">ค32101_คณิตศาสตร์ 5_10603_กำหนดการสอน</code><br>' +
+                'ส่วนสุดท้ายของกำหนดการสอน ใช้คำว่า <b>Course Outline</b> แทน <b>กำหนดการสอน</b> ก็ได้',
+      secTeacher: 'ข้อมูลผู้สอน',
+      lblTeacherId: 'รหัสประจำตัว',
+      phTeacherId: 'เช่น 10603',
+      lblFirstName: 'ชื่อ',
+      phFirstName: 'เช่น ม.สัจจะ',
+      lblLastName: 'นามสกุล',
+      phLastName: 'เช่น อ้อยใจ',
+      lblDepartment: 'กลุ่มสาระการเรียนรู้',
+      chooseDept: 'เลือกกลุ่มสาระฯ...',
+      multiLabel: 'สอนหลายวิชา (ส่งได้ครั้งละสูงสุด 5 วิชา)',
+      multiHelp: 'เปิดเมื่อต้องการส่งไฟล์มากกว่า 1 วิชาในครั้งเดียว ปิดเมื่อสอนวิชาเดียว',
+      stateOn: 'เปิด',
+      stateOff: 'ปิด',
+      blockTitle: 'วิชาที่ {n}',
+      removeSubject: 'ลบวิชานี้',
+      addSubject: 'เพิ่มวิชา',
+      maxReached: 'ส่งได้ครั้งละสูงสุด 5 วิชา',
+      offConfirmTitle: 'ปิดโหมดหลายวิชา?',
+      offConfirmText: 'จะเหลือเฉพาะวิชาที่ 1 วิชาอื่นจะถูกลบออกจากฟอร์ม',
+      yes: 'ยืนยัน',
+      cancel: 'ยกเลิก',
+      secSyllabus: 'ไฟล์ Course Syllabus',
+      secSchedule: 'ไฟล์ กำหนดการสอน',
+      lblWord: 'ไฟล์ Word (.doc, .docx)',
+      lblPdf: 'ไฟล์ PDF (.pdf)',
+      submitBtn: 'ส่งข้อมูลและไฟล์',
+      uploading: 'กำลังอัปโหลด...',
+      uploadingProgress: 'กำลังอัปโหลดวิชาที่ {cur}/{total}...',
+      catSyllabus: 'Course Syllabus',
+      catSchedule: 'กำหนดการสอน',
+      orWord: 'หรือ',
+      whereBlock: ' (วิชาที่ {n})',
+      warnTitle: 'แจ้งเตือน',
+      warnNoFile: 'กรุณาแนบไฟล์อย่างน้อย 1 ไฟล์ครับ',
+      blockNoFile: 'กรุณาแนบไฟล์อย่างน้อย 1 ไฟล์ในวิชาที่ {n} ครับ',
+      badNameTitle: 'ตั้งชื่อไฟล์ไม่ถูกต้อง',
+      badNameBody: 'พบปัญหาที่ช่อง <b>[{cat} - {type}]</b>{where} ไฟล์: <b>{file}</b><br><br>{msg}<br><br>กรุณาเปลี่ยนชื่อไฟล์ให้ถูกต้องก่อนกดส่งครับ',
+      errParts: 'ต้องมี 4 ส่วน คั่นด้วย "_" เท่านั้น<br>(รูปแบบที่ถูก: รหัสวิชา_ชื่อวิชา_เลขประจำตัวครู_ประเภทเอกสาร)<br><b>ไฟล์ของคุณ:</b> <span class="text-danger">{name}</span>',
+      errTeacherId: 'รหัสครูในชื่อไฟล์ (<b>{fileId}</b>) ไม่ตรงกับที่คุณกรอกในฟอร์ม (<b>{formId}</b>)',
+      errCategory: 'ส่วนที่ 4 ของชื่อไฟล์ต้องพิมพ์คำว่า {expected} เท่านั้น<br>(แต่ระบบพบ: "<b>{found}</b>")',
+      subjectMismatchTitle: 'รหัสวิชาไม่ตรงกัน',
+      subjectMismatchBody: 'รหัสวิชาในชื่อไฟล์ของคุณไม่ตรงกัน{where}<br>พบวิชา "<b>{a}</b>" และ "<b>{b}</b>" ปะปนกัน<br><br>{hint}',
+      hintOne: 'กรุณาส่งไฟล์ของวิชาเดียวกันในการกดส่ง 1 ครั้งครับ ถ้าสอนหลายวิชา ให้เปิดสวิตช์ "สอนหลายวิชา" ด้านบน',
+      hintMany: 'กรุณาใส่ไฟล์ของวิชาเดียวกันในแต่ละกล่องวิชาครับ',
+      dupTitle: 'ส่งวิชาซ้ำกัน',
+      dupBody: 'รหัสวิชา "<b>{code}</b>" ถูกใช้ทั้งในวิชาที่ {a} และวิชาที่ {b}<br><br>กรุณาใส่แต่ละวิชาเพียง 1 ครั้งครับ',
+      successTitle: 'บันทึกสำเร็จ!',
+      successBody: 'อัปโหลดข้อมูลวิชา <b>{subject}</b> เรียบร้อยแล้ว',
+      successBodyMany: 'อัปโหลดข้อมูลวิชาเหล่านี้เรียบร้อยแล้ว:<br>{list}',
+      errorTitle: 'เกิดข้อผิดพลาด',
+      failedOne: 'ส่งวิชา <b>{subject}</b> ไม่สำเร็จ<br>{msg}',
+      partialBody: 'บันทึกสำเร็จแล้ว:<br>{saved}<br><br>ยังไม่ได้บันทึก: <b>{failed}</b><br>สาเหตุ: {msg}<br><br>ระบบเอาวิชาที่บันทึกแล้วออกจากฟอร์มให้แล้ว กรุณากดส่งอีกครั้งสำหรับวิชาที่เหลือ',
+      saveFail: 'บันทึกลงชีตไม่สำเร็จ:',
+      driveFail: 'อัปโหลดไฟล์ไปที่ Drive ไม่สำเร็จ:'
+    },
+    en: {
+      title: 'Submit Your Course Syllabus and Course Outline',
+      deadlineLabel: 'Deadline:',
+      subtitle: 'Please fill in the form and add all your files.',
+      hintTitle: 'Rules for file names (before you upload):',
+      hintBody: 'Name your file like this: <code>SubjectCode_SubjectName_TeacherID_DocumentType</code><br>' +
+                'Example for Course Syllabus: <code class="text-success">ค32101_คณิตศาสตร์ 5_10603_Course Syllabus</code><br>' +
+                'Example for Course Outline: <code class="text-success">ค32101_คณิตศาสตร์ 5_10603_Course Outline</code><br>' +
+                'In the examples: <b>ค32101</b> = subject code, <b>คณิตศาสตร์ 5</b> = subject name (Mathematics 5), <b>10603</b> = teacher ID.<br>' +
+                '<b>Important:</b> The last part must be exactly <b>Course Syllabus</b> or <b>Course Outline</b>. ' +
+                'Use "_" between the 4 parts.',
+      secTeacher: 'Teacher Information',
+      lblTeacherId: 'Teacher ID',
+      phTeacherId: 'Example: 10603',
+      lblFirstName: 'First name',
+      phFirstName: 'Example: Satcha',
+      lblLastName: 'Last name',
+      phLastName: 'Example: Aoychai',
+      lblDepartment: 'Learning area',
+      chooseDept: 'Choose a learning area...',
+      multiLabel: 'I teach many subjects (send up to 5 subjects at one time)',
+      multiHelp: 'Turn this on to send files for more than one subject. Turn it off if you have only one subject.',
+      stateOn: 'On',
+      stateOff: 'Off',
+      blockTitle: 'Subject {n}',
+      removeSubject: 'Remove this subject',
+      addSubject: 'Add a subject',
+      maxReached: 'You can send only 5 subjects at one time.',
+      offConfirmTitle: 'Turn off?',
+      offConfirmText: 'Only Subject 1 will stay. The other subjects will be removed from the form.',
+      yes: 'Yes, turn off',
+      cancel: 'Cancel',
+      secSyllabus: 'Course Syllabus Files',
+      secSchedule: 'Course Outline Files',
+      lblWord: 'Word files (.doc, .docx)',
+      lblPdf: 'PDF files (.pdf)',
+      submitBtn: 'Send information and files',
+      uploading: 'Uploading...',
+      uploadingProgress: 'Uploading subject {cur} of {total}...',
+      catSyllabus: 'Course Syllabus',
+      catSchedule: 'Course Outline',
+      orWord: 'or',
+      whereBlock: ' (Subject {n})',
+      warnTitle: 'Warning',
+      warnNoFile: 'Please add at least 1 file.',
+      blockNoFile: 'Please add at least 1 file in Subject {n}.',
+      badNameTitle: 'Wrong file name',
+      badNameBody: 'There is a problem in this box: <b>[{cat} - {type}]</b>{where}<br>File: <b>{file}</b><br><br>{msg}<br><br>Please change the file name. Then press send again.',
+      errParts: 'The file name must have 4 parts. Use "_" between the parts.<br>(Correct format: SubjectCode_SubjectName_TeacherID_DocumentType)<br><b>Your file:</b> <span class="text-danger">{name}</span>',
+      errTeacherId: 'The teacher ID in the file name (<b>{fileId}</b>) is not the same as the ID in the form (<b>{formId}</b>).',
+      errCategory: 'The 4th part of the file name must be exactly {expected}.<br>(The system found: "<b>{found}</b>")',
+      subjectMismatchTitle: 'Subject codes are not the same',
+      subjectMismatchBody: 'The subject codes in your file names are not the same{where}.<br>The system found "<b>{a}</b>" and "<b>{b}</b>" together.<br><br>{hint}',
+      hintOne: 'Send files for only one subject each time. If you teach many subjects, turn on "I teach many subjects" above.',
+      hintMany: 'Use files for only one subject in each subject box.',
+      dupTitle: 'The same subject two times',
+      dupBody: 'The subject code "<b>{code}</b>" is in Subject {a} and in Subject {b}.<br><br>Please use each subject only one time.',
+      successTitle: 'Saved!',
+      successBody: 'Your files for <b>{subject}</b> were uploaded.',
+      successBodyMany: 'Your files for these subjects were uploaded:<br>{list}',
+      errorTitle: 'Error',
+      failedOne: 'We could not send the subject <b>{subject}</b>.<br>{msg}',
+      partialBody: 'These subjects were saved:<br>{saved}<br><br>This subject was not saved: <b>{failed}</b><br>Reason: {msg}<br><br>We removed the saved subjects from the form. Please press send again for the other subjects.',
+      saveFail: 'Could not save to the sheet:',
+      driveFail: 'Could not upload the file to Drive:'
+    }
+  };
+
+  // ชื่อกลุ่มสาระฯ ภาษาอังกฤษ (แสดงผลเท่านั้น ค่าที่บันทึกยังเป็นภาษาไทย)
+  const DEPT_EN = {
+    'ภาษาไทย': 'Thai Language',
+    'คณิตศาสตร์': 'Mathematics',
+    'วิทยาศาสตร์': 'Science',
+    'สังคมศึกษา': 'Social Studies',
+    'สุขศึกษาและพลศึกษา': 'Health and PE',
+    'ศิลปะ': 'Arts',
+    'การงานอาชีพ': 'Career Education',
+    'ภาษาต่างประเทศ': 'Foreign Languages',
+    'เทคโนโลยี': 'Technology',
+    'จีน – ญี่ปุ่น': 'Chinese – Japanese',
+    'IEP': 'IEP',
+    'EP': 'EP',
+    'STEM': 'STEM'
+  };
+
+  // ค่าหมวดเอกสารที่ระบบใช้จริง (ห้ามแปล) -> คีย์ข้อความที่ใช้แสดงผล
+  const CAT_KEY = { 'Course Syllabus': 'catSyllabus', 'กำหนดการสอน': 'catSchedule' };
+
+  // คำที่ยอมรับเป็นส่วนที่ 4 ของชื่อไฟล์ (ค่าที่บันทึกลงชีตยังเป็นค่าเดิมของหมวดนั้น)
+  const CAT_ACCEPT = {
+    'Course Syllabus': ['Course Syllabus'],
+    'กำหนดการสอน': ['กำหนดการสอน', 'Course Outline']
+  };
+
+  const MAX_SUBJECTS = 5;
+  const UPLOAD_CONCURRENCY = 4;   // จำนวนไฟล์ที่อัปโหลดพร้อมกัน
+
+  let LANG = 'th';
+  try { LANG = localStorage.getItem('lang') || 'th'; } catch (e) {}
+  if (!I18N[LANG]) LANG = 'th';
+
+  let MULTI = false;          // สวิตช์สอนหลายวิชา เปิด/ปิด
+  let nextBlockId = 1;        // ตัวนับ id กล่องวิชา (ไม่ซ้ำกัน)
+  let isUploading = false;
+  let progress = null;        // { cur, total }
+
+  function t(key, params) {
+    let s = (I18N[LANG] && I18N[LANG][key] !== undefined) ? I18N[LANG][key] : (I18N.th[key] !== undefined ? I18N.th[key] : key);
+    if (params) {
+      Object.keys(params).forEach(k => { s = s.split('{' + k + '}').join(params[k]); });
+    }
+    return s;
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // ---------- กล่องวิชา ----------
+  function blocks() { return Array.from(document.querySelectorAll('.subject-block')); }
+
+  function blockHtml(id) {
+    return `
+    <div class="subject-block" id="block_${id}" data-id="${id}">
+      <div class="block-head">
+        <button type="button" class="btn btn-outline-danger btn-sm remove-btn" onclick="removeBlock(${id})">
+          <i class="fa-solid fa-trash-can"></i> <span data-i18n="removeSubject"></span>
+        </button>
+      </div>
+
+      <div class="section-head">
+        <i class="fa-solid fa-file-lines"></i>
+        <h5 class="section-title" data-i18n="secSyllabus"></h5>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-primary" data-i18n="lblWord"></label>
+          <input type="file" id="syllabusWord_${id}" class="form-control" accept=".doc,.docx" multiple>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-danger" data-i18n="lblPdf"></label>
+          <input type="file" id="syllabusPdf_${id}" class="form-control" accept=".pdf" multiple>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <i class="fa-solid fa-calendar-days"></i>
+        <h5 class="section-title" data-i18n="secSchedule"></h5>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-primary" data-i18n="lblWord"></label>
+          <input type="file" id="scheduleWord_${id}" class="form-control" accept=".doc,.docx" multiple>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-danger" data-i18n="lblPdf"></label>
+          <input type="file" id="schedulePdf_${id}" class="form-control" accept=".pdf" multiple>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function blockConfigs(id) {
+    return [
+      { id: 'syllabusWord_' + id, category: 'Course Syllabus', type: 'Word' },
+      { id: 'syllabusPdf_' + id, category: 'Course Syllabus', type: 'PDF' },
+      { id: 'scheduleWord_' + id, category: 'กำหนดการสอน', type: 'Word' },
+      { id: 'schedulePdf_' + id, category: 'กำหนดการสอน', type: 'PDF' }
+    ];
+  }
+
+  function renumber() {
+    blocks().forEach((b, i) => { b.querySelector('.block-title')?.setAttribute('data-n', i + 1); });
+    applyLang();
+  }
+
+  function addBlock() {
+    if (blocks().length >= MAX_SUBJECTS) return;
+    const id = nextBlockId++;
+    document.getElementById('blocks').insertAdjacentHTML('beforeend', blockHtml(id));
+    renumber();
+  }
+
+  function removeBlock(id) {
+    if (blocks().length <= 1) return;
+    const el = document.getElementById('block_' + id);
+    if (el) el.remove();
+    renumber();
+  }
+
+  async function onMultiToggle(on) {
+    const sw = document.getElementById('multiSwitch');
+    if (!on && blocks().length > 1) {
+      const r = await Swal.fire({
+        icon: 'question',
+        title: t('offConfirmTitle'),
+        text: t('offConfirmText'),
+        showCancelButton: true,
+        confirmButtonText: t('yes'),
+        cancelButtonText: t('cancel'),
+        confirmButtonColor: '#C8483A'
+      });
+      if (!r.isConfirmed) { sw.checked = true; return; }
+      blocks().slice(1).forEach(b => b.remove());
+    }
+    MULTI = on;
+    renumber();
+  }
+
+  function resetAll() {
+    document.getElementById('mainForm').reset();
+    document.getElementById('blocks').innerHTML = '';
+    MULTI = false;
+    addBlock();
+  }
+
+  function updateMultiUI() {
+    const n = blocks().length;
+    document.getElementById('formBox').classList.toggle('multi-on', MULTI);
+    document.getElementById('addWrap').style.display = MULTI ? '' : 'none';
+
+    const ms = document.getElementById('multiState');
+    ms.textContent = MULTI ? t('stateOn') : t('stateOff');
+    ms.className = 'badge ms-2 ' + (MULTI ? 'bg-success' : 'bg-secondary');
+
+    const addBtn = document.getElementById('addBtn');
+    addBtn.innerHTML = '<i class="fa-solid fa-circle-plus"></i> ' + esc(t('addSubject')) + ' (' + n + '/' + MAX_SUBJECTS + ')';
+    addBtn.disabled = n >= MAX_SUBJECTS;
+    document.getElementById('maxHint').textContent = (n >= MAX_SUBJECTS) ? t('maxReached') : '';
+  }
+
+  // ---------- ภาษา ----------
+  function updateSubmitBtn() {
+    const btn = document.getElementById('submitBtn');
+    if (isUploading) {
+      const label = (progress && progress.total > 1) ? t('uploadingProgress', progress) : t('uploading');
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ' + esc(label);
+    } else {
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ' + esc(t('submitBtn'));
+    }
+  }
+
+  function applyLang() {
+    document.documentElement.lang = LANG;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const n = el.getAttribute('data-n');
+      el.textContent = n ? t(key, { n: n }) : t(key);
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-ph')); });
+
+    const dv = document.getElementById('deadlineVal');
+    dv.textContent = dv.getAttribute('data-' + LANG) || dv.getAttribute('data-th');
+
+    document.querySelectorAll('#department option').forEach(opt => {
+      if (opt.value) opt.textContent = (LANG === 'en') ? (DEPT_EN[opt.value] || opt.value) : opt.value;
+    });
+
+    document.getElementById('btnTh').classList.toggle('active', LANG === 'th');
+    document.getElementById('btnEn').classList.toggle('active', LANG === 'en');
+    updateMultiUI();
+    updateSubmitBtn();
+  }
+
+  function setLang(lang) {
+    LANG = lang;
+    try { localStorage.setItem('lang', lang); } catch (e) {}
+    applyLang();
+  }
+
+  window.addEventListener('DOMContentLoaded', addBlock);
+
+  // ==================== ระบบส่งไฟล์ ====================
+  function validateFileName(file, expectedTId, expectedCat) {
+    let nameParts = file.name.split('.');
+    nameParts.pop();
+    let baseName = nameParts.join('.').trim();
+    let parts = baseName.split('_');
+    if (parts.length !== 4) {
+      return { valid: false, msg: t('errParts', { name: esc(baseName) }) };
+    }
+    let [code, subName, tId, cat] = parts.map(p => p.trim());
+    if (tId !== expectedTId) {
+      return { valid: false, msg: t('errTeacherId', { fileId: esc(tId), formId: esc(expectedTId) }) };
+    }
+    const accepted = CAT_ACCEPT[expectedCat] || [expectedCat];
+    if (!accepted.some(a => a.toLowerCase() === cat.toLowerCase())) {
+      const expectedText = accepted.map(a => '"<b>' + a + '</b>"').join(' ' + t('orWord') + ' ');
+      return { valid: false, msg: t('errCategory', { expected: expectedText, found: esc(cat) }) };
+    }
+    return { valid: true, code: code, subName: subName };
+  }
+
+  function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      let reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function callServer(fnName, ...args) {
+    return new Promise((resolve, reject) => {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fnName](...args);
+    });
+  }
+
+  // อัปโหลดพร้อมกันสูงสุด limit งาน ถ้างานใดพลาดจะหยุดรับงานใหม่
+  async function runPool(tasks, limit) {
+    const results = new Array(tasks.length);
+    let next = 0, failed = false;
+    async function worker() {
+      while (!failed && next < tasks.length) {
+        const i = next++;
+        try { results[i] = await tasks[i](); }
+        catch (err) { failed = true; throw err; }
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker));
+    return results;
+  }
+
+  async function submitForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const teacherIdInput = document.getElementById('teacherId').value.trim();
+    const base = {
+      teacherId: teacherIdInput,
+      firstName: document.getElementById('firstName').value.trim(),
+      lastName: document.getElementById('lastName').value.trim(),
+      department: document.getElementById('department').value
+    };
+
+    const blockEls = blocks();
+    const many = blockEls.length > 1;   // ใช้ข้อความแบบหลายวิชาเมื่อมีมากกว่า 1 กล่อง
+    const plan = [];
+
+    // ---------- 1) ตรวจสอบทุกวิชาก่อนอัปโหลด ----------
+    for (let bi = 0; bi < blockEls.length; bi++) {
+      const id = blockEls[bi].getAttribute('data-id');
+      const n = bi + 1;
+      const configs = blockConfigs(id);
+      const where = many ? t('whereBlock', { n: n }) : '';
+
+      const hasFile = configs.some(c => document.getElementById(c.id).files.length > 0);
+      if (!hasFile) {
+        Swal.fire({ icon: 'warning', title: t('warnTitle'), text: many ? t('blockNoFile', { n: n }) : t('warnNoFile'), confirmButtonColor: '#1D3557' });
+        return;
+      }
+
+      let subjectCode = null, subjectName = null;
+      for (let config of configs) {
+        let fileEl = document.getElementById(config.id);
+        for (let i = 0; i < fileEl.files.length; i++) {
+          let file = fileEl.files[i];
+          let valResult = validateFileName(file, base.teacherId, config.category);
+          if (!valResult.valid) {
+            Swal.fire({
+              icon: 'error',
+              title: t('badNameTitle'),
+              html: t('badNameBody', { cat: t(CAT_KEY[config.category]), type: config.type, where: where, file: esc(file.name), msg: valResult.msg }),
+              confirmButtonColor: '#C8483A'
+            });
+            return;
+          }
+          if (subjectCode === null) { subjectCode = valResult.code; subjectName = valResult.subName; }
+          else if (subjectCode !== valResult.code) {
+            Swal.fire({
+              icon: 'error',
+              title: t('subjectMismatchTitle'),
+              html: t('subjectMismatchBody', { where: where, a: esc(subjectCode), b: esc(valResult.code), hint: many ? t('hintMany') : t('hintOne') }),
+              confirmButtonColor: '#C8483A'
+            });
+            return;
+          }
+        }
+      }
+
+      // ห้ามส่งวิชาเดียวกัน 2 กล่อง
+      const dup = plan.find(p => p.code === subjectCode);
+      if (dup) {
+        Swal.fire({ icon: 'error', title: t('dupTitle'), html: t('dupBody', { code: esc(subjectCode), a: dup.n, b: n }), confirmButtonColor: '#C8483A' });
+        return;
+      }
+
+      plan.push({ id: id, n: n, code: subjectCode, subject: subjectCode + " " + subjectName, configs: configs });
+    }
+
+    // ---------- 2) อัปโหลดและบันทึกทีละวิชา (ภายในวิชา อัปโหลดไฟล์พร้อมกัน) ----------
+    btn.disabled = true;
+    isUploading = true;
+    document.body.classList.add('busy');
+    updateSubmitBtn();
+
+    const saved = [];
+    let current = null;
+    try {
+      for (let pi = 0; pi < plan.length; pi++) {
+        const item = plan[pi];
+        current = item;
+        progress = { cur: pi + 1, total: plan.length };
+        updateSubmitBtn();
+
+        // สร้างงานอัปโหลดของทุกไฟล์ในวิชานี้ แล้วรันพร้อมกันตาม UPLOAD_CONCURRENCY
+        const tasks = [];
+        for (const config of item.configs) {
+          const fileEl = document.getElementById(config.id);
+          for (const file of fileEl.files) {
+            tasks.push(async () => {
+              const base64 = await readFileAsBase64(file);
+              const res = await callServer('uploadFileToDrive', base64, file.name, base.department);
+              if (res.error) throw new Error(t('driveFail') + ' ' + String(res.error).replace(/^Drive Error:\s*/, ''));
+              return { category: config.category, type: config.type, url: res.url };
+            });
+          }
+        }
+        const uploadedData = await runPool(tasks, UPLOAD_CONCURRENCY);
+
+        const r = await callServer('saveToSheet', Object.assign({}, base, { subject: item.subject }), uploadedData);
+        // saveToSheet คืนข้อความขึ้นต้นด้วย "Error" เมื่อบันทึกไม่สำเร็จ
+        if (typeof r === 'string' && r.indexOf('Error') === 0) {
+          throw new Error(t('saveFail') + ' ' + r.replace(/^Error[^:]*:\s*/, ''));
+        }
+        saved.push(item);
+      }
+
+      if (plan.length === 1) {
+        Swal.fire({ icon: 'success', title: t('successTitle'), html: t('successBody', { subject: esc(plan[0].subject) }), confirmButtonColor: '#1E8F6F' });
+      } else {
+        const list = plan.map(p => '<b>' + esc(p.subject) + '</b>').join('<br>');
+        Swal.fire({ icon: 'success', title: t('successTitle'), html: t('successBodyMany', { list: list }), confirmButtonColor: '#1E8F6F' });
+      }
+      resetAll();
+    } catch (err) {
+      if (saved.length > 0) {
+        // ลบวิชาที่บันทึกแล้วออกจากฟอร์ม กันส่งซ้ำ
+        saved.forEach(s => { const el = document.getElementById('block_' + s.id); if (el) el.remove(); });
+        renumber();
+        const savedList = saved.map(s => '<b>' + esc(s.subject) + '</b>').join('<br>');
+        Swal.fire({
+          icon: 'error',
+          title: t('errorTitle'),
+          html: t('partialBody', { saved: savedList, failed: esc(current.subject), msg: esc(err.message) }),
+          confirmButtonColor: '#C8483A'
+        });
+      } else if (plan.length > 1 && current) {
+        Swal.fire({ icon: 'error', title: t('errorTitle'), html: t('failedOne', { subject: esc(current.subject), msg: esc(err.message) }), confirmButtonColor: '#C8483A' });
+      } else {
+        Swal.fire({ icon: 'error', title: t('errorTitle'), text: err.message, confirmButtonColor: '#C8483A' });
+      }
+    }
+    btn.disabled = false;
+    isUploading = false;
+    progress = null;
+    document.body.classList.remove('busy');
+    updateSubmitBtn();
+  }
+</script>
+</body>
+</html>
