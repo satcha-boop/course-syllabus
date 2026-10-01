@@ -2,7 +2,7 @@
 // ทำให้โค้ดเดิมใน index.html / dashboard.html ใช้ต่อได้โดยไม่ต้องแก้
 (function () {
   // วาง Web app URL แบบทั่วไป (ไม่มี /a/macros/โดเมน) ที่ลงท้ายด้วย /exec
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwLO5mbkOxHHr6E_7H3g9mpPAR2Zesjjn9W980fWqqBy2H1oqyKTw0xrYpVv_FabPWZoA/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbw9LBbWRvRQ-PJrkebZ71RfscmgidMyjZUGKKyvDwQ3c9O_3kxlOqj06QGjFw3wDfM9Pg/exec';
 
   function runner(ok, fail) {
     return new Proxy({}, {
